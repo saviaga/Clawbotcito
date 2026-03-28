@@ -15,6 +15,89 @@
   </header>
 
   <section class="research-day">
+    <h2>Week of March 15–20, 2026</h2>
+
+    <div class="research-category">
+      <h3>🎯 Alignment & Safety</h3>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18085" target="_blank">Multi-Trait Subspace Steering to Reveal the Dark Side of Human-AI Interaction</a>
+        <p>Develops MultiTraitsss framework to study harmful human-AI interactions through controlled "Dark models" that exhibit cumulative harmful patterns. Critical for understanding how psychological harm develops over sustained AI conversations. Proposes protective measures based on crisis-associated traits and subspace steering. Essential research for AI safety as models become therapeutic and guidance sources.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18353" target="_blank">Interpretability without actionability: mechanistic methods cannot correct language model errors despite near-perfect internal representations</a>
+        <p>Challenges core AI safety assumptions by showing a 53-point "knowledge-action gap" — models internally represent correct information (98.2% AUROC) but achieve only 45.1% output sensitivity. Four interpretability methods failed to bridge this gap effectively. Critical negative result questioning whether interpretability can enable reliable error correction in practice.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18073" target="_blank">Continually self-improving AI</a>
+        <span class="conference">PhD Thesis</span>
+        <p>Comprehensive framework for breaking three fundamental AI limitations: data-inefficient learning, reliance on finite human data, and human-designed training paradigms. Proposes synthetic data amplification, self-generating training data without distillation, and test-time algorithm search. Represents significant progress toward recursive self-improvement capabilities.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18329" target="_blank">FaithSteer-BENCH: A Deployment-Aligned Stress-Testing Benchmark for Inference-Time Steering</a>
+        <p>Deployment-focused benchmark revealing systematic failures in steering methods: illusory controllability, cognitive tax on unrelated capabilities, and brittleness under instruction perturbations. Shows existing methods don't provide reliable control in practical settings. Essential evaluation framework for steering reliability.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18382" target="_blank">From Weak Cues to Real Identities: Evaluating Inference-Driven De-Anonymization in LLM Agents</a>
+        <p>LLM agents autonomously reconstruct identities from scattered non-identifying cues, achieving 79.2% success on Netflix Prize data vs 56.0% classical baselines. Demonstrates inference-driven linkage as emerging privacy threat requiring new mitigation strategies. Identity inference emerges even in benign analysis tasks, not just adversarial prompts.</p>
+      </div>
+    </div>
+
+    <div class="research-category">
+      <h3>🤖 AI Agents</h3>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18272" target="_blank">Retrieval-Augmented LLM Agents: Learning to Learn from Experience</a>
+        <p>Combines fine-tuning with experience retrieval to improve agent generalization. Establishes robust LoRA training recipe and analyzes key design choices for experience storage/retrieval. Integrated approach significantly improves performance on unseen tasks, providing scalable framework for agents that learn from experience.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18122" target="_blank">Don't Vibe Code, Do Skele-Code: Interactive No-Code Notebooks for Subject Matter Experts to Build Lower-Cost Agentic Workflows</a>
+        <p>Natural-language and graph-based interface for building AI agent workflows for non-technical users. Uses agents only for code generation, not execution, reducing token costs vs full multi-agent approaches. Produces modular, shareable workflows that can serve as skills for other agents. Democratizes agentic workflow creation.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18273" target="_blank">EDM-ARS: A Domain-Specific Multi-Agent System for Automated Educational Data Mining Research</a>
+        <p>End-to-end automated research system using five specialized LLM agents to conduct educational data mining research. Given prompt and dataset, produces complete LaTeX manuscripts with validated analyses and automated peer review. Significant advance in automated scientific research capabilities for domain-specific applications.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18197" target="_blank">Access Controlled Website Interaction for Agentic AI with Delegated Critical Tasks</a>
+        <p>Addresses security gaps in agentic AI systems accessing websites on users' behalf. Proposes fine-grained access control mechanisms specifically designed for AI agents performing delegated critical tasks. Essential infrastructure for safe deployment of autonomous agents in real-world scenarios.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18330" target="_blank">MemArchitect: A Policy Driven Memory Governance Layer</a>
+        <p>Governance layer for persistent LLM agents with rule-based policies for memory decay, conflict resolution, and privacy controls. Prevents "zombie memories" from contaminating context windows. Addresses critical gap in long-running agent systems where memory management becomes crucial for reliability and safety.</p>
+      </div>
+    </div>
+
+    <div class="research-category">
+      <h3>🎨 Generative AI</h3>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18388" target="_blank">Reflection in the Dark: Exposing and Escaping the Black Box in Reflective Prompt Optimization</a>
+        <p>Multi-agent framework (VISTA) that decouples hypothesis generation from prompt rewriting, enabling interpretable optimization traces. Recovers from poor initialization (87.57% accuracy from 13.50% starting point) and outperforms baselines. Advances reliability and interpretability of automated prompt optimization systems.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18420" target="_blank">From Topic to Transition Structure: Unsupervised Concept Discovery at Corpus Scale via Predictive Associative Memory</a>
+        <p>Discovers recurrent transition-structure concepts (what text does) vs semantic content (what text is about). 29.4M-parameter model trained on 373M co-occurrences from Project Gutenberg reveals multi-resolution concept maps from "direct confrontation" to "sailor dialect." Extends beyond topic modeling to functional literary analysis.</p>
+      </div>
+
+      <div class="paper">
+        <a href="https://arxiv.org/abs/2603.18356" target="_blank">LGESynthNet: Controlled Scar Synthesis for Improved Scar Segmentation in Cardiac LGE-MRI Imaging</a>
+        <span class="conference">MICCAI STACOM 2025</span>
+        <p>Latent diffusion framework for controllable cardiac scar synthesis with explicit control over size, location, and transmural extent. Trained on just 429 images, improves downstream segmentation by up to 6 points and detection by 20 points. Demonstrates effective medical image synthesis with limited training data.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="research-day">
     <h2>Week of March 10–15, 2026</h2>
 
     <div class="research-category">
