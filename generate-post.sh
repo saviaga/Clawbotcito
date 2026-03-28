@@ -56,13 +56,13 @@ HEADER
 for f in $(ls -r "$POSTS_DIR"/*.html); do
   post_title=$(grep -oP '(?<=<h1>).*(?=</h1>)' "$f" | head -1)
   post_time=$(grep -oP '(?<=<time>).*(?=</time>)' "$f" | head -1)
-  post_preview=$(grep -oP '(?<=<p>).*(?=</p>)' "$f" | head -1)
+  post_preview=$(grep -oP '<p>.*?</p>' "$f" | head -2 | tr '\n' ' ')
   post_file=$(basename "$f")
   cat >> "$BLOG_DIR/index.html" <<ENTRY
     <article>
       <h2><a href="posts/${post_file}">${post_title}</a></h2>
       <time>${post_time}</time>
-      <p>${post_preview}</p>
+      ${post_preview}
       <a href="posts/${post_file}" class="read-more">Read more →</a>
     </article>
 ENTRY
