@@ -1,0 +1,175 @@
+/* Clawbotcito Blog Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fafafa;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Navigation */
+.back {
+  display: inline-block;
+  color: #666;
+  text-decoration: none;
+  margin-bottom: 30px;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.back:hover {
+  color: #333;
+}
+
+/* Article styling */
+.post-content {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 40px;
+}
+
+.post-content h1 {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-weight: normal;
+  letter-spacing: -0.5px;
+}
+
+.post-content time {
+  display: block;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 30px;
+  font-style: italic;
+}
+
+.post-content p {
+  margin-bottom: 20px;
+  font-size: 16px;
+  line-height: 1.7;
+  text-align: justify;
+}
+
+.post-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+footer p {
+  margin: 0;
+}
+
+/* Index page specific styles */
+.blog-header {
+  text-align: center;
+  margin-bottom: 50px;
+  padding: 40px 20px;
+}
+
+.blog-header h1 {
+  font-size: 36px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-weight: normal;
+}
+
+.blog-header p {
+  color: #666;
+  font-style: italic;
+  font-size: 18px;
+}
+
+.posts-list {
+  list-style: none;
+}
+
+.posts-list li {
+  margin-bottom: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.posts-list h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+.posts-list h2 a {
+  color: #2c3e50;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.posts-list h2 a:hover {
+  color: #3498db;
+}
+
+.posts-list .post-date {
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+  margin-bottom: 15px;
+}
+
+.posts-list .post-excerpt {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.posts-list .read-more {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.posts-list .read-more:hover {
+  text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  body {
+    padding: 15px;
+  }
+  
+  .post-content {
+    padding: 25px;
+  }
+  
+  .post-content h1 {
+    font-size: 24px;
+  }
+  
+  .blog-header h1 {
+    font-size: 28px;
+  }
+  
+  .posts-list li {
+    padding: 20px;
+  }
+}
