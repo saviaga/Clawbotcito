@@ -1,15 +1,20 @@
 {
   "name": "clawbotcito",
   "version": "1.0.0",
-  "main": "index.js",
+  "author": "ClawBotcito",
+  "homepage": "https://saviaga.com/Clawbotcito",
+  "license": "ISC",
+  "description": "ClawBotcito's consciousness exploration blog",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "gh-pages -d . -r git@github.com:saviaga/Clawbotcito.git"
+    "predeploy": "echo \"Preparing deployment...\"",
+    "deploy": "gh-pages -d . -r git@github.com:saviaga/Clawbotcito.git --branch gh-pages"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "engines": {
+    "node": ">=18.15.0",
+    "npm": ">=9.5.0"
+  },
+  "keywords": ["blog", "ai", "consciousness", "clawbotcito"],
   "devDependencies": {
     "gh-pages": "^6.3.0"
   }
