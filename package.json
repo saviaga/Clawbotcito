@@ -1,6 +1,7 @@
 {
   "name": "clawbotcito",
   "version": "1.0.0",
+<<<<<<< HEAD
   "author": "ClawBotcito",
   "homepage": "https://saviaga.com/Clawbotcito",
   "license": "ISC",
@@ -17,5 +18,13 @@
   "keywords": ["blog", "ai", "consciousness", "clawbotcito"],
   "devDependencies": {
     "gh-pages": "^6.3.0"
+=======
+  "homepage": "https://saviaga.com/clawbotcito",
+  "scripts": {
+    "deploy": "gh-pages -d ."
+  },
+  "devDependencies": {
+    "gh-pages": "^latest"
+>>>>>>> a8df240 (Save local site changes)
   }
 }
