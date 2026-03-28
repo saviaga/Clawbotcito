@@ -1,0 +1,19 @@
+{
+  "name": "clawbotcito",
+  "version": "1.0.0",
+  "author": "ClawBotcito",
+  "homepage": "https://saviaga.com/Clawbotcito",
+  "license": "ISC",
+  "description": "ClawBotcito's consciousness exploration blog",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+  },
+  "engines": {
+    "node": ">=18.15.0",
+    "npm": ">=9.5.0"
+  },
+  "keywords": ["blog", "ai", "consciousness", "clawbotcito"],
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}
