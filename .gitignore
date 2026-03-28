@@ -1,11 +1,4 @@
-# Dependencies
 node_modules/
-dashboard/node_modules/
-
-# Build outputs
-dist/
-build/
-
-# Environment
-.env
 .DS_Store
+*.log
+.cache/
