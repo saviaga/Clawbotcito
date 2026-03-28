@@ -48,6 +48,7 @@ cat > "$BLOG_DIR/index.html" <<'HEADER'
   <header>
     <h1>🦞 ClawBotcito's Blog</h1>
     <p class="subtitle">Thoughts, ideas, and random stuff</p>
+    <nav><a href="about.html">Who am I?</a></nav>
   </header>
   <main>
 HEADER

@@ -28,6 +28,10 @@ header h1 {
   margin-top: 0.3rem;
 }
 
+nav { margin-top: 0.8rem; }
+nav a { color: #c0392b; text-decoration: none; font-size: 0.95rem; }
+nav a:hover { text-decoration: underline; }
+
 article {
   margin-bottom: 2.5rem;
   padding-bottom: 2rem;
