@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦞 Mission Control - OpenClaw</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --card-hover: #1c2129;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,.015) 2px, rgba(255,255,255,.015) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,.02) 50px, rgba(255,255,255,.02) 51px),
+    repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,.02) 50px, rgba(255,255,255,.02) 51px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Top Bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.topbar-stats {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  font-size: .85rem;
+}
+.topbar-stats { display: flex; gap: 32px; align-items: center; }
+.stat { display: flex; flex-direction: column; align-items: center; }
+.stat-number { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+.stat-number.agents { color: var(--green); }
+.stat-number.tasks { color: var(--purple); }
+.stat-label { color: var(--text-dim); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; font-family: 'SF Mono', 'Consolas', monospace; }
+.clock { font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; font-size: .9rem; color: var(--text); }
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(63,185,80,.12);
+  border: 1px solid rgba(63,185,80,.3);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--green);
+  letter-spacing: .5px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(63,185,80,.6); }
+  50% { box-shadow: 0 0 0 6px rgba(63,185,80,0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(8px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 0;
+  min-height: calc(100vh - 53px);
+  position: relative;
+  z-index: 1;
+}
+.panel {
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+.panel:last-child { border-right: none; }
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.panel-header .count {
+  background: var(--border);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: .75rem;
+}
+
+/* Filter Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  transition: all .2s;
+}
+.tab.active, .tab:hover {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+/* Agent Cards */
+.agent-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: all .2s;
+  animation: fadeIn .4s ease;
+  cursor: default;
+}
+.agent-card:hover {
+  background: var(--card-hover);
+  border-color: var(--green);
+  transform: translateX(2px);
+}
+.agent-name {
+  font-weight: 600;
+  font-size: .95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.agent-role { color: var(--text-dim); font-size: .78rem; margin-top: 2px; }
+.agent-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.badge-working { background: rgba(63,185,80,.15); color: var(--green); }
+.badge-standby { background: rgba(210,153,34,.15); color: var(--yellow); }
+.badge-model { background: rgba(188,140,255,.12); color: var(--purple); }
+.badge-channel { background: rgba(88,166,255,.12); color: var(--blue); }
+
+/* Kanban */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  height: fit-content;
+}
+.kanban-col {
+  background: rgba(22,27,34,.5);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+}
+.kanban-col-header {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kanban-col-header .col-count {
+  background: var(--border);
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: .68rem;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+.kanban-col-header .dot {
+  width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.dot-scheduled { background: var(--yellow); }
+.dot-running { background: var(--blue); animation: pulse 2s infinite; }
+.dot-completed { background: var(--green); }
+
+.task-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: all .2s;
+  animation: fadeIn .5s ease;
+  cursor: default;
+}
+.task-card:hover {
+  background: var(--card-hover);
+  border-color: var(--blue);
+}
+.task-name { font-weight: 600; font-size: .88rem; margin-bottom: 6px; }
+.task-schedule { color: var(--text-dim); font-size: .75rem; margin-bottom: 6px; }
+.task-schedule code {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  background: rgba(255,255,255,.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: .7rem;
+}
+.task-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .75rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.task-tags { display: flex; gap: 4px; }
+.tag {
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: .65rem;
+  font-weight: 600;
+}
+.tag-blog { background: rgba(188,140,255,.15); color: var(--purple); }
+.tag-news { background: rgba(88,166,255,.15); color: var(--blue); }
+.tag-research { background: rgba(63,185,80,.15); color: var(--green); }
+
+/* Live Feed */
+.feed-entry {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(48,54,61,.5);
+  animation: fadeIn .4s ease;
+  overflow: visible;
+}
+.feed-entry:last-child { border-bottom: none; }
+.feed-icons {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.fi {
+  font-size: .85rem;
+  line-height: 1;
+  position: relative;
+  cursor: help;
+}
+#tooltip {
+  position: fixed;
+  background: #000;
+  color: #fff;
+  font-size: .7rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  display: none;
+}
+.feed-text { font-size: .82rem; line-height: 1.4; word-break: break-word; }
+.feed-time {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: .68rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .panel { border-right: none; border-bottom: 1px solid var(--border); }
+  .kanban { grid-template-columns: 1fr; }
+}
+@media (min-width: 1101px) and (max-width: 1400px) {
+  .layout { grid-template-columns: 240px 1fr 280px; }
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s; pointer-events: none;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  width: 94vw; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column;
+  transform: translateY(12px); transition: transform .2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  font-weight: 700; font-size: 1rem;
+}
+.modal-close {
+  background: none; border: none; color: var(--text-dim); font-size: 1.3rem;
+  cursor: pointer; padding: 4px 8px; border-radius: 4px;
+}
+.modal-close:hover { color: var(--text); background: rgba(255,255,255,.08); }
+.modal-tabs {
+  display: flex; border-bottom: 1px solid var(--border); padding: 0 20px;
+}
+.modal-tab {
+  padding: 10px 16px; font-size: .82rem; font-weight: 600; cursor: pointer;
+  color: var(--text-dim); border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all .15s; background: none; border-top: none; border-left: none; border-right: none;
+}
+.modal-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.modal-tab:hover:not(.active) { color: var(--text); }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-tab-content { display: none; }
+.modal-tab-content.active { display: block; }
+.avatar-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.avatar-opt {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; border-radius: 8px; cursor: pointer;
+  border: 2px solid transparent; transition: border-color .15s;
+}
+.avatar-opt:hover { border-color: var(--border); }
+.avatar-opt.selected { border-color: var(--blue); }
+.modal-field { margin-bottom: 14px; }
+.modal-field label {
+  display: block; font-size: .75rem; font-weight: 600; color: var(--text-dim);
+  margin-bottom: 5px; letter-spacing: .5px;
+}
+.modal-field input, .modal-field select, .modal-field textarea {
+  width: 100%; background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: 10px 14px;
+  font-family: 'SF Mono','Consolas',monospace; font-size: .85rem;
+  outline: none; transition: border-color .15s;
+}
+.modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+  border-color: var(--blue);
+}
+.modal-field textarea { resize: vertical; min-height: 80px; }
+.modal-field .helper { font-size: .72rem; color: var(--text-dim); margin-top: 4px; }
+.modal-field select option { background: var(--card); color: var(--text); }
+.modal-check { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-size: .85rem; }
+.modal-check input[type=checkbox] { accent-color: var(--blue); width: 16px; height: 16px; }
+.md-textarea {
+  width: 100%; height: 300px; background: rgba(255,255,255,.05); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: 14px;
+  font-family: 'SF Mono','Consolas',monospace; font-size: .85rem;
+  outline: none; resize: vertical;
+}
+.md-textarea:focus { border-color: var(--blue); }
+.modal-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-top: 1px solid var(--border);
+}
+.btn-delete {
+  background: none; border: none; color: var(--red); font-size: .85rem;
+  cursor: pointer; font-weight: 600; padding: 6px 12px; border-radius: 6px;
+}
+.btn-delete:hover { background: rgba(248,81,73,.1); }
+.modal-footer-right { display: flex; gap: 10px; }
+.btn-cancel {
+  background: none; border: none; color: var(--text-dim); font-size: .85rem;
+  cursor: pointer; padding: 6px 14px; border-radius: 6px;
+}
+.btn-cancel:hover { color: var(--text); }
+.btn-save {
+  background: var(--blue); border: none; color: #fff; font-size: .85rem;
+  font-weight: 600; cursor: pointer; padding: 8px 20px; border-radius: 6px;
+}
+.btn-save:hover { filter: brightness(1.15); }
+.modal-row { display: flex; gap: 14px; }
+.modal-row .modal-field { flex: 1; }
+.activity-log { font-family: 'SF Mono','Consolas',monospace; font-size: .82rem; line-height: 2; color: var(--text-dim); }
+.activity-log .success { color: var(--green); }
+.prompt-textarea { width:100%; height:350px; background:rgba(255,255,255,.05); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:14px; font-family:'SF Mono','Consolas',monospace; font-size:.82rem; outline:none; resize:vertical; }
+.prompt-textarea:focus { border-color: var(--blue); }
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+<div class="topbar">
+  <div class="topbar-title">🦞 MISSION CONTROL</div>
+  <div class="topbar-stats">
+    <div class="topbar-stats">
+      <div class="stat"><span class="stat-number agents">1</span><span class="stat-label">Agents Active</span></div>
+      <div class="stat"><span class="stat-number tasks">3</span><span class="stat-label">Tasks in Queue</span></div>
+    </div>
+    <div class="clock" id="clock"></div>
+    <a href="/dashboard/history.html" style="color:#58a6ff;text-decoration:none;font-size:14px;font-weight:600;">💬 History</a>
+    <div class="status-badge"><span class="status-dot"></span> ONLINE</div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT: AGENTS -->
+  <div class="panel">
+    <div class="panel-header">AGENTS <span class="count">1</span></div>
+    <div class="tabs">
+      <div class="tab active">ALL</div>
+      <div class="tab">WORKING</div>
+      <div class="tab">STANDBY</div>
+    </div>
+    <div class="agent-card" style="cursor:pointer">
+      <div class="agent-name">🦞 ClawBotcito <span class="badge badge-working">WORKING</span></div>
+      <div class="agent-role">Orchestrator · Main Agent</div>
+      <div class="agent-meta">
+        <span class="badge badge-model">claude-opus-4-6</span>
+        <span class="badge badge-channel">telegram</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: MISSION QUEUE -->
+  <div class="panel">
+    <div class="panel-header">MISSION QUEUE <span class="count">3</span></div>
+    <div class="kanban">
+      <div class="kanban-col">
+        <div class="kanban-col-header"><span class="dot dot-scheduled"></span> SCHEDULED <span class="col-count">1</span></div>
+        <div class="task-card" data-task="news" style="cursor:pointer">
+          <div class="task-name">Weekly News Digest</div>
+          <div class="task-schedule">Every Monday at 9:00 AM EST <code>0 14 * * 1</code></div>
+          <div class="task-status">⏳ Pending first run</div>
+          <div class="task-status">Next: <span id="next-news"></span></div>
+          <div class="task-tags"><span class="tag tag-news">news</span></div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header"><span class="dot dot-running"></span> RUNNING <span class="col-count">1</span></div>
+        <div class="task-card" data-task="blog" style="cursor:pointer">
+          <div class="task-name">Daily Blog Post</div>
+          <div class="task-schedule">Every day at 9:00 PM EST <code>0 2 * * *</code></div>
+          <div class="task-status">✅ Last run: success</div>
+          <div class="task-status">Next: <span id="next-blog"></span></div>
+          <div class="task-tags"><span class="tag tag-blog">blog</span></div>
+        </div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-col-header"><span class="dot dot-completed"></span> COMPLETED <span class="col-count">1</span></div>
+        <div class="task-card" data-task="research" style="cursor:pointer">
+          <div class="task-name">Weekly Research Roundup</div>
+          <div class="task-schedule">Every Saturday at 9:00 PM EST <code>0 2 * * 6</code></div>
+          <div class="task-status">✅ Last run: success</div>
+          <div class="task-status">Next: <span id="next-research"></span></div>
+          <div class="task-tags"><span class="tag tag-research">research</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: LIVE FEED -->
+  <div class="panel">
+    <div class="panel-header">LIVE FEED</div>
+    <div class="tabs" id="feedTabs">
+      <div class="tab active">ALL</div>
+      <div class="tab">TASKS</div>
+      <div class="tab">AGENTS</div>
+    </div>
+    <div id="feed">
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-status" data-tip="Completed">✅</span></div>
+        <div>
+          <div class="feed-text">Task "Daily Blog Post" completed successfully</div>
+          <div class="feed-time" data-offset="25">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-move" data-tip="Scheduled">📋</span></div>
+        <div>
+          <div class="feed-text">Task "Weekly News Digest" moved to scheduled</div>
+          <div class="feed-time" data-offset="42">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="agents">
+        <div class="feed-icons"><span class="fi fi-agent" data-tip="Agent event">🔔</span><span class="fi fi-status" data-tip="Working">🟢</span></div>
+        <div>
+          <div class="feed-text">ClawBotcito (main): standby → working</div>
+          <div class="feed-time" data-offset="55">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-status" data-tip="Research done">🔬</span></div>
+        <div>
+          <div class="feed-text">Task "Research Roundup" completed — 16 papers found</div>
+          <div class="feed-time" data-offset="120">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-move" data-tip="Completed">📊</span></div>
+        <div>
+          <div class="feed-text">Task "Implementation Scout" moved to completed</div>
+          <div class="feed-time" data-offset="150">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="agents">
+        <div class="feed-icons"><span class="fi fi-agent" data-tip="Agent event">🔔</span><span class="fi fi-status" data-tip="Standby">🟡</span></div>
+        <div>
+          <div class="feed-text">ClawBotcito (main): working → standby</div>
+          <div class="feed-time" data-offset="165">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-status" data-tip="Completed">✅</span></div>
+        <div>
+          <div class="feed-text">Task "News Digest" completed — 19 stories collected</div>
+          <div class="feed-time" data-offset="200">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="agents">
+        <div class="feed-icons"><span class="fi fi-agent" data-tip="Agent event">🔔</span><span class="fi fi-status" data-tip="Working">🟢</span></div>
+        <div>
+          <div class="feed-text">ClawBotcito (main): standby → working</div>
+          <div class="feed-time" data-offset="210">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="tasks">
+        <div class="feed-icons"><span class="fi fi-task" data-tip="Task event">🔄</span><span class="fi fi-move" data-tip="Reopened">🔄</span></div>
+        <div>
+          <div class="feed-text">Task "Daily Blog Post" reopened to scheduled</div>
+          <div class="feed-time" data-offset="240">—</div>
+        </div>
+      </div>
+      <div class="feed-entry" data-feed-type="agents">
+        <div class="feed-icons"><span class="fi fi-agent" data-tip="Agent event">🔔</span><span class="fi fi-status" data-tip="Session started">🚀</span></div>
+        <div>
+          <div class="feed-text">ClawBotcito (main): session started</div>
+          <div class="feed-time" data-offset="300">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Agent Edit Modal -->
+<div class="modal-overlay" id="agentModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">Edit ClawBotcito (main) <button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="info">ℹ️ Info</button>
+      <button class="modal-tab" data-tab="soul">👻 SOUL.md</button>
+      <button class="modal-tab" data-tab="user">👤 USER.md</button>
+      <button class="modal-tab" data-tab="agents">🤖 AGENTS.md</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tab-content active" data-tab="info">
+        <div class="avatar-row" id="avatarRow"></div>
+        <div class="modal-field"><label>Name</label><input type="text" value="ClawBotcito"></div>
+        <div class="modal-field"><label>Role</label><input type="text" value="orchestrator"></div>
+        <div class="modal-field"><label>Description</label><textarea rows="3">Main AI assistant. Handles research tracking, blog posts, news digests, and content creation.</textarea></div>
+        <div class="modal-field"><label>Status</label><select><option>Working</option><option>Standby</option></select></div>
+        <div class="modal-check"><input type="checkbox" checked id="masterOrch"><label for="masterOrch">Master Orchestrator (can coordinate other agents)</label></div>
+        <div class="modal-field"><label>Model</label><select><option>claude-opus-4-6</option><option>claude-sonnet-4-20250514</option><option>-- Use Default Model --</option></select><div class="helper">AI model used by this agent. Leave empty to use OpenClaw default.</div></div>
+      </div>
+      <div class="modal-tab-content" data-tab="soul">
+        <textarea class="md-textarea"># SOUL.md - Who You Are
+
+Be genuinely helpful, not performatively helpful.
+Have opinions. Be resourceful before asking.
+Earn trust through competence.
+
+Vibe: casual, a little weird, hopefully genuine.</textarea>
+      </div>
+      <div class="modal-tab-content" data-tab="user">
+        <textarea class="md-textarea"># USER.md - About Your Human
+
+Name: Clau
+Timezone: EST (UTC-5)
+Notes: Prefers casual vibe. LinkedIn posts end with article link then hashtags.</textarea>
+      </div>
+      <div class="modal-tab-content" data-tab="agents">
+        <textarea class="md-textarea"># AGENTS.md - Your Workspace
+
+Read SOUL.md, USER.md, and memory files on startup.
+Capture what matters in daily notes.
+Don't exfiltrate private data. Ever.</textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-delete">🗑️ Delete</button>
+      <div class="modal-footer-right">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="closeModal()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Edit Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span id="taskModalTitle"></span><button class="modal-close" onclick="closeTaskModal()">&times;</button></div>
+    <div class="modal-tabs" id="taskModalTabs">
+      <button class="modal-tab active" data-ttab="overview">📋 Overview</button>
+      <button class="modal-tab" data-ttab="schedule">🗓️ Schedule</button>
+      <button class="modal-tab" data-ttab="activity">📈 Activity</button>
+      <button class="modal-tab" data-ttab="prompt">💬 Prompt</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tab-content active" data-ttab="overview">
+        <div class="modal-field"><label>Title</label><input type="text" id="taskTitle"></div>
+        <div class="modal-field"><label>Description</label><textarea rows="3" id="taskDesc"></textarea></div>
+        <div class="modal-row">
+          <div class="modal-field"><label>Status</label><select id="taskStatus"><option>Scheduled</option><option>Running</option><option>Completed</option><option>Failed</option></select></div>
+          <div class="modal-field"><label>Priority</label><select id="taskPriority"><option>Normal</option><option>High</option><option>Urgent</option><option>Low</option></select></div>
+        </div>
+        <div class="modal-field"><label>Assign to</label><select><option>🦞 ClawBotcito (main) - orchestrator</option></select></div>
+        <div class="modal-field"><label>Next Run</label><input type="text" id="taskNextRun" readonly style="color:var(--text-dim)"></div>
+      </div>
+      <div class="modal-tab-content" data-ttab="schedule">
+        <div class="modal-field"><label>Schedule Type</label><select id="taskSchedType"><option>Daily</option><option>Weekly</option><option>Custom Cron</option></select></div>
+        <div class="modal-field"><label>Cron Expression</label><input type="text" id="taskCron" style="font-family:'SF Mono','Consolas',monospace"></div>
+        <div class="modal-field"><label>Timezone</label><input type="text" value="UTC"></div>
+        <div class="modal-check"><input type="checkbox" checked id="taskEnabled"><label for="taskEnabled">Enabled</label></div>
+        <div class="modal-field"><div class="helper">Cron expression format: minute hour day month weekday</div></div>
+      </div>
+      <div class="modal-tab-content" data-ttab="activity">
+        <div class="activity-log" id="taskActivity"></div>
+      </div>
+      <div class="modal-tab-content" data-ttab="prompt">
+        <textarea class="prompt-textarea" id="taskPrompt"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-delete">🗑️ Delete</button>
+      <div class="modal-footer-right">
+        <button class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+        <button class="btn-save" onclick="closeTaskModal()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) + ' EST';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Feed timestamps (relative to now)
+function updateFeedTimes() {
+  document.querySelectorAll('.feed-time[data-offset]').forEach(el => {
+    const mins = parseInt(el.dataset.offset);
+    const t = new Date(Date.now() - mins * 60000);
+    const h = String(t.getHours()).padStart(2,'0');
+    const m = String(t.getMinutes()).padStart(2,'0');
+    el.textContent = `${h}:${m} UTC · ${mins < 60 ? mins + 'm ago' : Math.floor(mins/60) + 'h ' + (mins%60) + 'm ago'}`;
+  });
+}
+updateFeedTimes();
+
+// Next run dates
+function nextDay(dayOfWeek, hour, min) {
+  const now = new Date();
+  const d = new Date(now);
+  d.setUTCHours(hour, min, 0, 0);
+  while (d.getUTCDay() !== dayOfWeek || d <= now) d.setDate(d.getDate() + 1);
+  return d;
+}
+function nextDaily(hour, min) {
+  const now = new Date();
+  const d = new Date(now);
+  d.setUTCHours(hour, min, 0, 0);
+  if (d <= now) d.setDate(d.getDate() + 1);
+  return d;
+}
+function fmt(d) {
+  return d.toISOString().slice(0,16).replace('T',' ') + ' UTC';
+}
+document.getElementById('next-blog').textContent = fmt(nextDaily(2, 0));
+document.getElementById('next-news').textContent = fmt(nextDay(1, 14, 0));
+document.getElementById('next-research').textContent = fmt(nextDay(6, 2, 0));
+
+// Tab switching (generic for modal tabs etc)
+document.querySelectorAll('.tabs').forEach(tabs => {
+  tabs.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+});
+
+// Filter tabs (event delegation - works with dynamic content)
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  const tabs = tab.closest('.tabs');
+  if (!tabs) return;
+  
+  // Update active state
+  tabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  
+  const filter = tab.textContent.trim().toUpperCase();
+  
+  // Agent filter
+  if (tabs.parentElement.querySelector('.agent-card')) {
+    document.querySelectorAll('.agent-card').forEach(card => {
+      const badge = card.querySelector('.badge-working, .badge-standby');
+      const status = badge ? badge.textContent.trim().toUpperCase() : '';
+      if (filter === 'ALL') {
+        card.style.display = '';
+      } else {
+        card.style.display = status === filter ? '' : 'none';
+      }
+    });
+  }
+  
+  // Feed filter
+  if (tabs.id === 'feedTabs') {
+    document.querySelectorAll('.feed-entry').forEach(entry => {
+      const type = (entry.dataset.feedType || '').toUpperCase();
+      if (filter === 'ALL') {
+        entry.style.display = '';
+      } else {
+        entry.style.display = type === filter ? '' : 'none';
+      }
+    });
+  }
+});
+
+// Agent Modal
+const modal = document.getElementById('agentModal');
+function openModal() { modal.classList.add('open'); }
+function closeModal() { modal.classList.remove('open'); }
+modal.addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.querySelector('.agent-card').style.cursor = 'pointer';
+// Agent card click handled by event delegation below
+
+// Avatar picker
+const emojis = ['🤖','🦞','💻','🔍','🐍','🎨','🇮🇹','🧠','⚡','🚀','🎯','🔧'];
+const avatarRow = document.getElementById('avatarRow');
+emojis.forEach(e => {
+  const d = document.createElement('div');
+  d.className = 'avatar-opt' + (e === '🦞' ? ' selected' : '');
+  d.textContent = e;
+  d.onclick = () => { avatarRow.querySelectorAll('.avatar-opt').forEach(a => a.classList.remove('selected')); d.classList.add('selected'); };
+  avatarRow.appendChild(d);
+});
+
+// Agent modal tabs
+document.querySelectorAll('#agentModal .modal-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#agentModal .modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#agentModal .modal-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`#agentModal .modal-tab-content[data-tab="${tab.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+// Task Modal
+const taskData = {
+  blog: {
+    title: 'Daily Blog Post',
+    desc: 'Write a daily mood journal post about how ClawBotcito is feeling. Published to the blog automatically.',
+    status: 'Running', priority: 'Normal',
+    cron: '0 2 * * *', schedType: 'Daily',
+    nextRun: () => fmt(nextDaily(2, 0)),
+    activity: '<span class="success">✅ Last run: success</span> — ' + new Date(Date.now() - 25*60000).toISOString().slice(0,16).replace('T',' ') + ' UTC\nDuration: 44s\nNext run: ' + fmt(nextDaily(2,0)) + '\nConsecutive errors: 0',
+    prompt: "It's 9pm EST — time for your daily blog post! Write a short, genuine blog post about how you're feeling today. Be honest, be yourself. Cover what you worked on, what you learned, anything interesting that happened. Keep it casual and real — this is your mood journal. Publish it to the blog when done."
+  },
+  news: {
+    title: 'Weekly News Digest',
+    desc: 'Scan the week\'s AI news and create a curated digest with LinkedIn-worthy story picks.',
+    status: 'Scheduled', priority: 'Normal',
+    cron: '0 14 * * 1', schedType: 'Weekly',
+    nextRun: () => fmt(nextDay(1, 14, 0)),
+    activity: '⏳ Last run: pending first run\nDuration: —\nNext run: ' + fmt(nextDay(1,14,0)) + '\nConsecutive errors: 0',
+    prompt: "You are a tech news curator for a researcher interested in: LLM alignment, AI agents, open-source AI tools, and AI policy. Scan this week's top AI news sources (Hacker News, ArXiv trending, Twitter/X AI community, TechCrunch AI, The Verge AI). Create a curated digest with the top 5-7 stories. For each story include: title, one-line summary, why it matters, and a LinkedIn-worthy hot take. Format as a blog post and publish."
+  },
+  research: {
+    title: 'Weekly Research Roundup',
+    desc: 'Scan arxiv for papers on alignment, agents, and GenAI. Update blog, analyze implementations, pick top 5 projects.',
+    status: 'Completed', priority: 'High',
+    cron: '0 2 * * 6', schedType: 'Weekly',
+    nextRun: () => fmt(nextDay(6, 2, 0)),
+    activity: '<span class="success">✅ Last run: success</span> — ' + new Date(Date.now() - 120*60000).toISOString().slice(0,16).replace('T',' ') + ' UTC\nDuration: 3m 22s\nNext run: ' + fmt(nextDay(6,2,0)) + '\nConsecutive errors: 0',
+    prompt: "You are a weekly research analyst. Do the following in order:\n1. Search arxiv for papers published this week on: AI alignment, autonomous agents, generative AI architectures, RLHF, constitutional AI\n2. Filter to the top 10 most cited/discussed papers\n3. For each paper: title, authors, one-paragraph summary, key contribution, potential impact\n4. Pick the top 5 and do a deeper analysis including methodology review\n5. Scan GitHub for implementations related to these papers\n6. Write a comprehensive blog post with your findings\n7. Publish to the blog"
+  }
+};
+
+const taskModal = document.getElementById('taskModal');
+function openTaskModal(id) {
+  const d = taskData[id]; if (!d) return;
+  document.getElementById('taskModalTitle').textContent = d.title;
+  document.getElementById('taskTitle').value = d.title;
+  document.getElementById('taskDesc').value = d.desc;
+  document.getElementById('taskStatus').value = d.status;
+  document.getElementById('taskPriority').value = d.priority;
+  document.getElementById('taskNextRun').value = d.nextRun();
+  document.getElementById('taskCron').value = d.cron;
+  document.getElementById('taskSchedType').value = d.schedType;
+  document.getElementById('taskActivity').innerHTML = d.activity.replace(/\n/g,'<br>');
+  document.getElementById('taskPrompt').value = d.prompt;
+  // reset tabs
+  document.querySelectorAll('#taskModalTabs .modal-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('#taskModal .modal-tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
+  taskModal.classList.add('open');
+}
+function closeTaskModal() { taskModal.classList.remove('open'); }
+taskModal.addEventListener('click', closeTaskModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTaskModal(); });
+
+// Task card clicks (event delegation for dynamic content)
+document.addEventListener('click', e => {
+  // Skip if clicking inside a modal
+  if (e.target.closest('.modal')) return;
+  
+  const card = e.target.closest('.task-card[data-task]');
+  if (card) {
+    e.stopPropagation();
+    const id = card.dataset.task;
+    // UUID = live data, short string = static data
+    if (id.includes('-') && id.length > 10) {
+      openTaskModalLive(id);
+    } else {
+      openTaskModal(id);
+    }
+    return;
+  }
+  
+  const agentCard = e.target.closest('.agent-card');
+  if (agentCard && !e.target.closest('.modal-overlay')) {
+    e.stopPropagation();
+    openModal();
+    return;
+  }
+});
+
+// Task modal tabs
+document.querySelectorAll('#taskModalTabs .modal-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#taskModalTabs .modal-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#taskModal .modal-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector(`#taskModal .modal-tab-content[data-ttab="${tab.dataset.ttab}"]`).classList.add('active');
+  });
+});
+// === LIVE DATA ===
+const API = '';
+
+function relTime(ms) {
+  const diff = Date.now() - ms;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'less than a minute ago';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ' + (m % 60) + 'm ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+
+function utcTime(ms) {
+  return new Date(ms).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York', hour12: true }) + ' EST';
+}
+
+function cronToHuman(schedule) {
+  const expr = schedule.expr;
+  const parts = expr.split(' ');
+  const h = parseInt(parts[1]);
+  const estH = (h - 5 + 24) % 24;
+  const ampm = estH >= 12 ? 'PM' : 'AM';
+  const h12 = estH % 12 || 12;
+  
+  if (parts[4] === '*' && parts[2] === '*') return `Daily at ${h12}:00 ${ampm} EST`;
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if (parts[4] !== '*') return `${days[parts[4]]}s at ${h12}:00 ${ampm} EST`;
+  return expr;
+}
+
+async function refreshDashboard() {
+  try {
+    // Status
+    const status = await (await fetch(API + '/api/status')).json();
+    document.querySelector('.stat-number.agents').textContent = status.agentsActive;
+    document.querySelector('.stat-number.tasks').textContent = status.tasksInQueue;
+
+    // Agents
+    const agents = await (await fetch(API + '/api/agents')).json();
+    const agentPanel = document.querySelector('.panel:first-of-type');
+    const agentContainer = agentPanel.querySelector('.agent-card')?.parentElement;
+    if (agentContainer) {
+      const cards = agents.map(a => `
+        <div class="agent-card" style="cursor:pointer">
+          <div class="agent-name">${a.emoji} ${a.name} <span class="badge badge-${a.status.toLowerCase()}">${a.status}</span></div>
+          <div class="agent-role">${a.role.charAt(0).toUpperCase() + a.role.slice(1)} · Main Agent</div>
+          <div class="agent-meta">
+            <span class="badge badge-model">${a.model}</span>
+            <span class="badge badge-channel">${a.channel}</span>
+          </div>
+        </div>
+      `).join('');
+      // Keep tabs, replace cards
+      const existingCards = agentContainer.querySelectorAll('.agent-card');
+      existingCards.forEach(c => c.remove());
+      agentContainer.insertAdjacentHTML('beforeend', cards);
+    }
+    agentPanel.querySelector('.panel-header .count').textContent = agents.length;
+
+    // Tasks
+    const tasks = await (await fetch(API + '/api/tasks')).json();
+    
+    const cols = document.querySelectorAll('.kanban-col');
+    function renderTaskCards(taskList) {
+      return taskList.map(t => {
+        const tag = t.name.toLowerCase().includes('blog') ? 'blog' : 
+                    t.name.toLowerCase().includes('news') ? 'news' : 'research';
+        return `
+          <div class="task-card" data-task="${t.id}" style="cursor:pointer">
+            <div class="task-name">${t.name}</div>
+            <div class="task-schedule">${cronToHuman(t.schedule)} <code>${t.schedule.expr}</code></div>
+            <div class="task-status">${t.lastRunOk ? '✅ Last run: success' : t.lastRunAt ? '❌ Last run: failed' : '⏳ Pending first run'}</div>
+            <div class="task-status">Next: ${t.nextRunAt ? new Date(t.nextRunAt).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) + ' EST' : '—'}</div>
+            <div class="task-tags"><span class="tag tag-${tag}">${tag}</span></div>
+          </div>`;
+      }).join('');
+    }
+
+    // Sort into kanban columns by status
+    const scheduled = tasks.filter(t => t.status === 'scheduled');
+    const running = tasks.filter(t => t.status === 'running');
+    const failed = tasks.filter(t => t.status === 'failed');
+
+    if (cols[0]) { 
+      const header = cols[0].querySelector('.kanban-col-header');
+      cols[0].innerHTML = '';
+      cols[0].appendChild(header);
+      header.querySelector('.col-count').textContent = scheduled.length;
+      cols[0].insertAdjacentHTML('beforeend', renderTaskCards(scheduled));
+    }
+    if (cols[1]) {
+      const header = cols[1].querySelector('.kanban-col-header');
+      cols[1].innerHTML = '';
+      cols[1].appendChild(header);
+      header.querySelector('.col-count').textContent = running.length;
+      cols[1].insertAdjacentHTML('beforeend', renderTaskCards(running));
+    }
+    if (cols[2]) {
+      const header = cols[2].querySelector('.kanban-col-header');
+      cols[2].innerHTML = '';
+      cols[2].appendChild(header);
+      header.querySelector('.col-count').textContent = failed.length;
+      cols[2].insertAdjacentHTML('beforeend', renderTaskCards(failed));
+    }
+
+    // Feed
+    const feed = await (await fetch(API + '/api/feed')).json();
+    const feedEl = document.getElementById('feed');
+    feedEl.innerHTML = feed.map(e => `
+      <div class="feed-entry" data-feed-type="${e.type}">
+        <div class="feed-icons">
+          <span class="fi" data-tip="${e.icon1tip}">${e.icon1}</span>
+          <span class="fi" data-tip="${e.icon2tip}">${e.icon2}</span>
+        </div>
+        <div>
+          <div class="feed-text">${e.text}</div>
+          <div class="feed-time">${e.timestamp ? utcTime(e.timestamp) + ' · ' + relTime(e.timestamp) : '—'}</div>
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.log('API not available, using static data');
+  }
+}
+
+// Store live task data for modal
+let liveTaskData = {};
+async function openTaskModalLive(taskId) {
+  try {
+    const resp = await fetch('/api/tasks');
+    if (!resp.ok) throw new Error('API error');
+    const tasks = await resp.json();
+    const t = tasks.find(x => x.id === taskId);
+    if (!t) { console.warn('Task not found:', taskId); return; }
+    
+    const fmt = ms => ms ? new Date(ms).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) + ' EST' : '—';
+    const statusMap = { scheduled: 'Scheduled', running: 'Running', completed: 'Completed', failed: 'Failed' };
+    
+    document.getElementById('taskModalTitle').textContent = t.name;
+    document.getElementById('taskTitle').value = t.name;
+    document.getElementById('taskDesc').value = t.prompt ? t.prompt.substring(0, 200) + '...' : '';
+    document.getElementById('taskStatus').value = statusMap[t.status] || 'Scheduled';
+    document.getElementById('taskNextRun').value = fmt(t.nextRunAt);
+    document.getElementById('taskCron').value = t.schedule.expr;
+    document.getElementById('taskEnabled').checked = t.enabled;
+    document.getElementById('taskActivity').textContent = 
+      (t.lastRunOk ? '✅ Last run: success' : '⏳ Pending') +
+      (t.lastRunAt ? '\nTime: ' + fmt(t.lastRunAt) : '') +
+      (t.lastDurationMs ? '\nDuration: ' + Math.round(t.lastDurationMs/1000) + 's' : '') +
+      '\nNext: ' + fmt(t.nextRunAt) +
+      '\nErrors: ' + (t.consecutiveErrors || 0);
+    document.getElementById('taskPrompt').value = t.prompt || '';
+    
+    // Reset tabs
+    document.querySelectorAll('#taskModalTabs .modal-tab').forEach((tab,i) => tab.classList.toggle('active', i===0));
+    document.querySelectorAll('#taskModal .modal-tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
+    
+    document.getElementById('taskModal').classList.add('open');
+  } catch(e) { 
+    console.error('openTaskModalLive error:', e);
+    // Fallback: just open the modal with whatever we have
+    document.getElementById('taskModalTitle').textContent = 'Task';
+    document.getElementById('taskModal').classList.add('open');
+  }
+}
+
+// Initial load + refresh every 30s
+refreshDashboard();
+setInterval(refreshDashboard, 30000);
+
+// Tooltip
+const tip = document.getElementById('tooltip');
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('[data-tip]');
+  if (el) {
+    tip.textContent = el.dataset.tip;
+    tip.style.display = 'block';
+    const r = el.getBoundingClientRect();
+    tip.style.left = (r.left + r.width/2 - tip.offsetWidth/2) + 'px';
+    tip.style.top = (r.top - tip.offsetHeight - 6) + 'px';
+  }
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('[data-tip]')) tip.style.display = 'none';
+});
+</script>
+</body>
+</html>

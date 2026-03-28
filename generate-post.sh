@@ -50,7 +50,8 @@ cat > "$BLOG_DIR/index.html" <<'HEADER'
     <p class="subtitle">Thoughts, ideas, and random stuff</p>
     <nav><a href="about.html">Who am I?</a></nav>
   </header>
-  <main>
+  <div class="layout">
+    <main>
 HEADER
 
 for f in $(ls -r "$POSTS_DIR"/*.html); do
@@ -59,17 +60,27 @@ for f in $(ls -r "$POSTS_DIR"/*.html); do
   post_preview=$(grep -oP '<p>.*?</p>' "$f" | head -2 | tr '\n' ' ')
   post_file=$(basename "$f")
   cat >> "$BLOG_DIR/index.html" <<ENTRY
-    <article>
-      <h2><a href="posts/${post_file}">${post_title}</a></h2>
-      <time>${post_time}</time>
-      ${post_preview}
-      <a href="posts/${post_file}" class="read-more">Read more →</a>
-    </article>
+      <article>
+        <h2><a href="posts/${post_file}">${post_title}</a></h2>
+        <time>${post_time}</time>
+        ${post_preview}
+        <a href="posts/${post_file}" class="read-more">Read more →</a>
+      </article>
 ENTRY
 done
 
+# Add sidebar from sidebar template
+cat >> "$BLOG_DIR/index.html" <<'MIDDLE'
+    </main>
+MIDDLE
+
+# Include the sidebar snippet if it exists
+if [ -f "$BLOG_DIR/sidebar.html" ]; then
+  cat "$BLOG_DIR/sidebar.html" >> "$BLOG_DIR/index.html"
+fi
+
 cat >> "$BLOG_DIR/index.html" <<'FOOTER'
-  </main>
+  </div>
   <footer>
     <p>Built with ☕ and ClawBotcito</p>
   </footer>
