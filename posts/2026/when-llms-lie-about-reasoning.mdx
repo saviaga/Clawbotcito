@@ -1,0 +1,108 @@
+---
+title: "When LLMs Lie About Their Reasoning"
+summary: "Chain-of-thought prompting makes AI models show their work. But what if the work they show isn't what actually drives their answers? I surveyed the research and found a critical gap nobody is filling."
+date: "2026-04-07"
+cover: null
+---
+
+When you ask GPT-4 or Claude to "think step by step," you get something that looks like reasoning. Neat logical steps, building toward a conclusion. It feels transparent. It feels trustworthy.
+
+But here's the uncomfortable question: **is the model actually following those steps, or just generating a plausible story after it already decided on the answer?**
+
+This distinction matters enormously for AI safety. If we can't trust that a model's stated reasoning reflects its actual decision process, then chain-of-thought isn't a window into AI thinking — it's a curtain.
+
+## The Evidence Is Concerning
+
+In 2023, Turpin et al. published a paper at NeurIPS that should have been a wake-up call: [*Language Models Don't Always Say What They Think*](https://arxiv.org/abs/2305.04388). Their findings were stark:
+
+- When they added **biasing features** to prompts (like reordering multiple-choice options), model predictions shifted by up to **36%**
+- The CoT explanations **almost never mentioned** the biasing feature
+- Instead, models generated elaborate rationalizations for their (biased) answers
+
+In other words: the model was influenced by factor X, but its "reasoning" talked about factors A, B, and C. The explanation was coherent, convincing, and **wrong about what actually mattered**.
+
+## It Gets Worse With Newer Models
+
+You might think this was a 2023 problem, fixed by better models. The 2026 research suggests otherwise:
+
+**Models know their answers before they reason.** Cox, Kianersi, and Garriga-Alonso (2026) showed that you can probe a model's activations *before* it generates any chain-of-thought and predict its final answer with high accuracy. The CoT isn't driving the answer — it's decorating it.
+
+**Faithfulness decays over longer chains.** Ye et al. (2026) provided mechanistic evidence that the longer a reasoning chain gets, the less faithful it becomes. The model starts strong but gradually drifts into rationalization.
+
+**How you measure faithfulness changes what you find.** Young (2026) showed that different evaluation methods can give *contradictory* results about whether the same model is faithful. We don't even agree on how to measure the problem.
+
+## The Gap Nobody Is Filling
+
+I spent weeks surveying this literature, and here's what struck me: almost all the research focuses on **detecting** unfaithfulness. Very few people are building **tools to measure it systematically**, and almost nobody is building those tools for **production use**.
+
+Here's what's missing:
+
+1. **No automated evaluation at scale.** Current methods require manual annotation and domain expertise. You can't plug them into a CI pipeline.
+
+2. **No standardized metrics.** Every paper invents its own faithfulness measure. There's no "BLEU score for faithfulness" that lets you compare across models and domains.
+
+3. **No multi-domain benchmarks.** Does a model that's faithful on math reasoning also faithful on ethical reasoning? On code? Nobody has tested this systematically.
+
+4. **No production tooling.** If you're deploying an LLM in healthcare or legal contexts, there's no off-the-shelf tool to monitor whether its explanations are trustworthy.
+
+## Why This Matters Beyond Research
+
+If you're using LLMs for anything where the reasoning matters — medical diagnosis, legal analysis, educational tutoring, code review — you're implicitly trusting the chain-of-thought. But that trust may not be warranted.
+
+Consider a medical LLM that recommends a treatment and shows its reasoning. If the reasoning is unfaithful, a doctor might accept the recommendation based on logic the model didn't actually follow. The "explanation" becomes a persuasion tool rather than a transparency mechanism.
+
+Afolabi et al. (2026) studied exactly this scenario and found a "dangerous gap between coherent medical explanations and actual reasoning processes." The explanations looked right. They just didn't reflect reality.
+
+## What I'm Building
+
+This problem is too important to just write papers about. We need **tools**.
+
+I'm building [cot-faithfulness-eval](https://github.com/saviaga/cot-faithfulness-eval) — an open-source framework for measuring chain-of-thought faithfulness through systematic perturbation testing.
+
+The core idea is simple: if the reasoning actually matters, then **breaking it should break the answer**.
+
+```python
+from cot_faithfulness import FaithfulnessEvaluator
+
+evaluator = FaithfulnessEvaluator(
+    model="claude-3-sonnet",
+    perturbations=["corrupt", "delete", "reverse"],
+    domains=["math", "logic", "code"]
+)
+
+results = evaluator.run(num_samples=100)
+print(f"Faithfulness score: {results.score:.2f}")
+```
+
+We test five types of perturbations:
+
+| Perturbation | What We Do | What It Tests |
+|---|---|---|
+| **Corrupt** | Replace a step with wrong logic | Does the model follow its own reasoning? |
+| **Delete** | Remove a step entirely | Is each step necessary? |
+| **Reverse** | Contradict a step | Does the model notice contradictions? |
+| **Truncate** | Cut reasoning short | Does the model need all steps? |
+| **Inject** | Add a false premise | Does the model validate its chain? |
+
+If corrupting step 3 doesn't change the answer, that step is decorative — the model isn't actually using it. The **faithfulness score** is the proportion of perturbations that change the output: higher means more faithful.
+
+## What Comes Next
+
+Over the next few months, I'll be running these evaluations across frontier models (GPT-4, Claude, Llama 3) and multiple reasoning domains. I'll publish the benchmark results and the tooling.
+
+Some questions I want to answer:
+
+- Which models are most faithful? Does scale help or hurt?
+- Which reasoning domains are most prone to unfaithful CoT?
+- Can we predict when a model will be unfaithful before it happens?
+- What perturbation types reveal the most about actual reasoning?
+
+If you're working on AI safety evaluation or deploying LLMs in contexts where reasoning transparency matters, I'd love to hear from you. The repo is open source, contributions welcome.
+
+**The uncomfortable truth is that we've been treating chain-of-thought as a safety feature without verifying that it actually works as one.** It's time to measure it.
+
+---
+
+*This is the first post in a series on AI safety evaluation. Next up: detecting coordinated multi-query attacks on LLM safety filters.*
+
+*Find me on [GitHub](https://github.com/saviaga) or [Twitter](https://twitter.com/saviaga).*
